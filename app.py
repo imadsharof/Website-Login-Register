@@ -1,66 +1,36 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from authlib.integrations.flask_client import OAuth
-import sqlite3, os, re
 from dotenv import load_dotenv
+import sqlite3, os, re
+
 load_dotenv()
-import os
-print("GOOGLE_CLIENT_ID loaded?:", bool(os.getenv("GOOGLE_CLIENT_ID")))
-print("GOOGLE_CLIENT_SECRET loaded?:", bool(os.getenv("GOOGLE_CLIENT_SECRET")))
 
 app = Flask(__name__)
-# --- Où stocker la base ---
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-change-me")
+
+# --- DB path (local) ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_DB = os.path.join(BASE_DIR, "app.db")
-
-DB_PATH = os.getenv("DB_PATH", DEFAULT_DB)
-
-# Si DB_PATH contient un dossier, on s'assure qu'il existe
+DB_PATH = os.getenv("DB_PATH", os.path.join(BASE_DIR, "app.db"))
+# Crée le dossier uniquement si DB_PATH contient un dossier
 db_dir = os.path.dirname(DB_PATH)
-if db_dir and not os.path.exists(db_dir):
+if db_dir:
     os.makedirs(db_dir, exist_ok=True)
 
-print("DB_PATH =", DB_PATH)
-app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-change-me")
-#DB_PATH = "app.db" avant
-DB_PATH = os.getenv("DB_PATH", "app.db")
-
-# --- OAuth Google ---
+# --- OAuth Google (facultatif en local) ---
 app.config["GOOGLE_CLIENT_ID"] = os.getenv("GOOGLE_CLIENT_ID")
 app.config["GOOGLE_CLIENT_SECRET"] = os.getenv("GOOGLE_CLIENT_SECRET")
 oauth = OAuth(app)
-oauth.register(
-    name="google",
-    server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
-    client_id=app.config["GOOGLE_CLIENT_ID"],
-    client_secret=app.config["GOOGLE_CLIENT_SECRET"],
-    client_kwargs={"scope": "openid email profile"},
-)
+if app.config["GOOGLE_CLIENT_ID"] and app.config["GOOGLE_CLIENT_SECRET"]:
+    oauth.register(
+        name="google",
+        server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
+        client_id=app.config["GOOGLE_CLIENT_ID"],
+        client_secret=app.config["GOOGLE_CLIENT_SECRET"],
+        client_kwargs={"scope": "openid email profile"},
+    )
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-COMMON_WEAK = {
-    "password","123456","12345678","123456789","admin","qwerty","azerty",
-    "motdepasse","welcome","passw0rd","abc123","iloveyou","000000","111111",
-    "letmein","monkey","dragon","football","qwertyuiop","naruto"
-}
-
-def validate_password(pw: str, email: str) -> list[str]:
-    issues = []
-    if len(pw) < 8: issues.append("Au moins 8 caractères.")
-    if not re.search(r"[a-z]", pw): issues.append("Au moins 1 lettre minuscule.")
-    if not re.search(r"[A-Z]", pw): issues.append("Au moins 1 lettre majuscule.")
-    if not re.search(r"\d", pw): issues.append("Au moins 1 chiffre.")
-    if not re.search(r"[^\w\s]", pw): issues.append("Au moins 1 caractère spécial (ex: ! @ # $ % & * ?).")
-    if re.search(r"\s", pw): issues.append("Pas d’espace.")
-    if re.search(r"(.)\1{2,}", pw): issues.append("Évitez les répétitions (aaa, 111).")
-    low = pw.lower()
-    for seq in ("abcdefghijklmnopqrstuvwxyz", "0123456789"):
-        if any(seq[i:i+4] in low for i in range(len(seq)-3)):
-            issues.append("Évitez les suites évidentes (abcd, 1234)."); break
-    if low in COMMON_WEAK: issues.append("Mot de passe trop commun.")
-    local = (email.split("@")[0] if email else "").lower()
-    if local and local in low: issues.append("N’utilisez pas votre email dans le mot de passe.")
-    return issues
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)
@@ -69,83 +39,101 @@ def get_db():
 
 def init_db():
     conn = get_db()
-
-    # Schéma pour une nouvelle base (si app.db n'existe pas encore)
     conn.executescript("""
     CREATE TABLE IF NOT EXISTS users(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       email TEXT NOT NULL UNIQUE,
-      password_hash TEXT,                 -- NULL pour comptes Google
+      password_hash TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      google_sub TEXT,                    -- ID Google (peut être NULL)
+      google_sub TEXT,
       name TEXT,
       avatar TEXT
     );
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_sub ON users(google_sub);
+
+    CREATE TABLE IF NOT EXISTS reviews(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      author_email TEXT,
+      rating INTEGER CHECK(rating BETWEEN 1 AND 5) NOT NULL,
+      comment TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS contacts(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      message TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
     """)
-    conn.commit()
-
-    # Migration douce si la table existait déjà
-    cols = {r["name"] for r in conn.execute("PRAGMA table_info(users)")}
-    if "google_sub" not in cols:
-        conn.execute("ALTER TABLE users ADD COLUMN google_sub TEXT")
-        # index UNIQUE (les valeurs NULL sont autorisées en multiple)
-        conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_sub ON users(google_sub)")
-    if "name" not in cols:
-        conn.execute("ALTER TABLE users ADD COLUMN name TEXT")
-    if "avatar" not in cols:
-        conn.execute("ALTER TABLE users ADD COLUMN avatar TEXT")
-
     conn.commit()
     conn.close()
 
-
-@app.route("/")
+# ------------- ROUTES -------------
+@app.get("/")
 def home():
+    # 3 derniers avis pour la page d'accueil
+    conn = get_db()
+    rows = conn.execute("""
+      SELECT author_email, rating, comment, created_at
+      FROM reviews ORDER BY created_at DESC LIMIT 3
+    """).fetchall()
+    conn.close()
+    return render_template("home.html", last_reviews=rows)
+
+@app.get("/auth")
+def auth():
     return render_template("auth.html")
 
-# ---------- Local signup/login ----------
+# ----- Register/Login -----
 @app.post("/register")
 def register():
     email = request.form.get("email","").strip().lower()
-    password = request.form.get("password","")
+    pw = request.form.get("password","")
     confirm = request.form.get("confirm","")
 
     if not EMAIL_RE.match(email):
-        flash("Email invalide.", "error"); return redirect(url_for("home")+"#signup")
-    if password != confirm:
-        flash("Les mots de passe ne correspondent pas.", "error"); return redirect(url_for("home")+"#signup")
-
-    issues = validate_password(password, email)
-    if issues:
-        for msg in issues: flash(msg, "signup_pw")
-        return redirect(url_for("home")+"#signup")
+        flash("Email invalide.", "error"); return redirect(url_for("auth")+"#signup")
+    if pw != confirm:
+        flash("Les mots de passe ne correspondent pas.", "error"); return redirect(url_for("auth")+"#signup")
+    if len(pw) < 8:
+        flash("Mot de passe trop court (min 8).", "error"); return redirect(url_for("auth")+"#signup")
 
     try:
-        pwd_hash = generate_password_hash(password)
         conn = get_db()
-        conn.execute("INSERT INTO users(email, password_hash) VALUES (?,?)", (email, pwd_hash))
+        conn.execute("INSERT INTO users(email, password_hash) VALUES (?,?)",
+                     (email, generate_password_hash(pw)))
         conn.commit(); conn.close()
         flash("Inscription réussie, vous pouvez vous connecter.", "success")
-        return redirect(url_for("home")+"#login")
+        return redirect(url_for("auth")+"#login")
     except sqlite3.IntegrityError:
-        flash("Cet email est déjà enregistré.", "error")
-        return redirect(url_for("home")+"#signup")
+        flash("Cet email est déjà enregistré.", "error"); return redirect(url_for("auth")+"#signup")
 
 @app.post("/login")
 def login():
     email = request.form.get("email","").strip().lower()
-    password = request.form.get("password","")
+    pw = request.form.get("password","")
     conn = get_db()
-    user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+    user = conn.execute("SELECT * FROM users WHERE email=?", (email,)).fetchone()
     conn.close()
-    if not user or not user["password_hash"] or not check_password_hash(user["password_hash"], password):
-        flash("Identifiants invalides.", "error"); return redirect(url_for("home")+"#login")
+    if not user or not user["password_hash"] or not check_password_hash(user["password_hash"], pw):
+        flash("Identifiants invalides.", "error"); return redirect(url_for("auth")+"#login")
     session["user_id"], session["email"] = user["id"], user["email"]
-    flash("Connexion réussie.", "success"); return redirect(url_for("profile"))
+    flash("Connexion réussie.", "success")
+    return redirect(url_for("home"))
 
-# ---------- Google OAuth ----------
+@app.get("/logout")
+def logout():
+    session.clear()
+    flash("Déconnecté.", "success")
+    return redirect(url_for("home"))
+
+# ----- Google OAuth (si configuré) -----
 @app.get("/login/google")
 def login_google():
+    if "google" not in oauth:
+        flash("Login Google non configuré en local.", "error"); return redirect(url_for("auth")+"#login")
     redirect_uri = url_for("auth_google_callback", _external=True)
     return oauth.google.authorize_redirect(redirect_uri)
 
@@ -153,74 +141,61 @@ def login_google():
 def auth_google_callback():
     try:
         token = oauth.google.authorize_access_token()
+        info = token.get("userinfo") or oauth.google.parse_id_token(token)
     except Exception:
-        flash("Échec de l’authentification Google.", "error")
-        return redirect(url_for("home")+"#login")
-
-    # Essaye d'obtenir l'ID token / userinfo
-    info = token.get("userinfo")
-    if not info:
-        try:
-            info = oauth.google.parse_id_token(token)
-        except Exception:
-            # Dernier recours: endpoint userinfo
-            resp = oauth.google.get("userinfo")
-            info = resp.json() if resp else None
-
-    if not info or not info.get("email"):
-        flash("Impossible de récupérer votre profil Google.", "error")
-        return redirect(url_for("home")+"#login")
-
-    sub = info.get("sub")
-    email = info.get("email").lower()
-    name = info.get("name")
-    avatar = info.get("picture")
-
+        flash("Échec Google OAuth.", "error"); return redirect(url_for("auth")+"#login")
+    sub, email = info.get("sub"), info.get("email").lower()
     conn = get_db()
-    # s'il existe par sub -> ok, sinon par email (on associe)
-    user = conn.execute("SELECT * FROM users WHERE google_sub = ? OR email = ?", (sub, email)).fetchone()
-    if user:
-        if not user["google_sub"]:
-            conn.execute("UPDATE users SET google_sub=?, name=?, avatar=? WHERE id=?",
-                         (sub, name, avatar, user["id"]))
-            conn.commit()
-    else:
+    user = conn.execute("SELECT * FROM users WHERE google_sub=? OR email=?", (sub,email)).fetchone()
+    if user and not user["google_sub"]:
+        conn.execute("UPDATE users SET google_sub=? WHERE id=?", (sub, user["id"])); conn.commit()
+    if not user:
         conn.execute("INSERT INTO users(email, google_sub, name, avatar) VALUES (?,?,?,?)",
-                     (email, sub, name, avatar))
+                     (email, sub, info.get("name"), info.get("picture")))
         conn.commit()
-        user = conn.execute("SELECT * FROM users WHERE google_sub = ?", (sub,)).fetchone()
     conn.close()
-
-    session["user_id"], session["email"] = user["id"], user["email"]
+    session["email"] = email
     flash("Connecté avec Google.", "success")
-    return redirect(url_for("profile"))
+    return redirect(url_for("home"))
 
-# ---------- Logout / Profile ----------
-@app.get("/logout")
-def logout():
-    session.clear()
-    flash("Vous avez été déconnecté.", "success")
-    return redirect(url_for("home")+"#login")
+# ----- Avis -----
+@app.route("/avis", methods=["GET","POST"])
+def avis():
+    if request.method == "POST":
+        rating = int(request.form.get("rating","5"))
+        comment = request.form.get("comment","").strip()
+        author = session.get("email")
+        if not comment:
+            flash("Votre avis est vide.", "error"); return redirect(url_for("avis"))
+        conn = get_db()
+        conn.execute("INSERT INTO reviews(author_email, rating, comment) VALUES (?,?,?)",
+                     (author, rating, comment))
+        conn.commit(); conn.close()
+        flash("Merci pour votre avis !", "success")
+        return redirect(url_for("avis"))
 
-@app.get("/profile")
-def profile():
-    if "user_id" not in session:
-        flash("Veuillez vous connecter.", "error"); return redirect(url_for("home")+"#login")
-    return f"<h1>Bonjour {session.get('email')}</h1><p>Page protégée.</p><p><a href='/logout'>Se déconnecter</a></p>"
-
-# ---------- Admin: liste des utilisateurs ----------
-@app.get("/admin/users")
-def admin_users():
     conn = get_db()
-    rows = conn.execute("""
-      SELECT id, email, created_at, name, avatar,
-             CASE WHEN google_sub IS NOT NULL THEN 'google' ELSE 'local' END AS provider
-      FROM users
-      ORDER BY created_at DESC
-    """).fetchall()
+    rows = conn.execute("SELECT * FROM reviews ORDER BY created_at DESC").fetchall()
     conn.close()
-    return render_template("users.html", rows=rows)
+    return render_template("avis.html", reviews=rows)
 
+# ----- Contact -----
+@app.route("/contact", methods=["GET","POST"])
+def contact():
+    if request.method == "POST":
+        name = request.form.get("name","").strip()
+        email = request.form.get("email","").strip()
+        message = request.form.get("message","").strip()
+        if not name or not EMAIL_RE.match(email) or not message:
+            flash("Merci de remplir correctement le formulaire.", "error"); return redirect(url_for("contact"))
+        conn = get_db()
+        conn.execute("INSERT INTO contacts(name,email,message) VALUES (?,?,?)",(name,email,message))
+        conn.commit(); conn.close()
+        flash("Message envoyé, on revient vers vous rapidement.", "success")
+        return redirect(url_for("contact"))
+    return render_template("contact.html")
+
+# ------------- RUN -------------
 if __name__ == "__main__":
     init_db()
     app.run(debug=True)

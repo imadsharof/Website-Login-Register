@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Contact • Mitraillette Royale{% endblock %}
+{% block content %}
+<h1>Contact</h1>
+<form class="form" method="post">
+  <label>Nom<input name="name" required></label>
+  <label>Email<input type="email" name="email" required></label>
+  <label>Message<textarea name="message" rows="5" required></textarea></label>
+  <button class="cta" type="submit">Envoyer</button>
+</form>
+{% endblock %}

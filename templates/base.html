@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}Mitraillette Royale{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}">
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="{{ url_for('home') }}">🥖 Mitraillette Royale</a>
+    <nav class="links">
+      <a href="{{ url_for('contact') }}">Contact</a>
+      <a href="{{ url_for('avis') }}">Donner un avis</a>
+      {% if session.get('email') %}
+        <span class="hello">Bonjour {{ session.get('email') }}</span>
+        <a class="btn" href="{{ url_for('logout') }}">Se déconnecter</a>
+      {% else %}
+        <a class="btn" href="{{ url_for('auth') }}">Se connecter / S’inscrire</a>
+      {% endif %}
+    </nav>
+  </header>
+
+  {% with messages = get_flashed_messages(with_categories=true, category_filter=['success','error']) %}
+    {% if messages %}
+      <div class="toast-stack" id="toasts">
+        {% for kind, text in messages %}
+          <div class="toast {{ 'toast--success' if kind == 'success' else 'toast--error' }}">{{ text }}</div>
+        {% endfor %}
+      </div>
+      <script> setTimeout(()=>{ const t=document.getElementById('toasts'); if(t) t.remove(); }, 2600); </script>
+    {% endif %}
+  {% endwith %}
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

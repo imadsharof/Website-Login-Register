@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}TOP 1 Mitraillette en Belgique • Mitraillette Royale{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1>TOP 1 Mitraillette en Belgique</h1>
+  <p>Le sandwich mythique 🇧🇪 — pain croustillant, viande, frites dorées, sauce maison.</p>
+  <a class="cta" href="{{ url_for('auth') }}">Commander (se connecter)</a>
+</section>
+
+<section class="features">
+  <div class="card">
+    <h3>Frites belges</h3>
+    <p>Deux cuissons, croustillantes dehors, fondantes dedans.</p>
+  </div>
+  <div class="card">
+    <h3>Sauces maison</h3>
+    <p>Andalouse, samouraï, americaine… la vraie tradition.</p>
+  </div>
+  <div class="card">
+    <h3>Pain artisanal</h3>
+    <p>La base parfaite pour une mitraillette généreuse.</p>
+  </div>
+</section>
+
+<section class="reviews">
+  <h2>Derniers avis</h2>
+  {% if last_reviews %}
+    <ul class="review-list">
+      {% for r in last_reviews %}
+        <li>
+          <div class="stars">{"★"*r["rating"]}{"☆"*(5-r["rating"])}</div>
+          <p>{{ r["comment"] }}</p>
+          <small>{{ r["author_email"] or "Anonyme" }} — {{ r["created_at"] }}</small>
+        </li>
+      {% endfor %}
+    </ul>
+    <a class="link" href="{{ url_for('avis') }}">Voir tous les avis →</a>
+  {% else %}
+    <p>Pas encore d’avis. Soyez le premier !</p>
+  {% endif %}
+</section>
+{% endblock %}

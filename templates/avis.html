@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Avis • Mitraillette Royale{% endblock %}
+{% block content %}
+<h1>Donner un avis</h1>
+<form class="form" method="post">
+  <label>Note
+    <select name="rating">
+      {% for i in range(5,0,-1) %}<option value="{{ i }}">{{ i }} ★</option>{% endfor %}
+    </select>
+  </label>
+  <label>Commentaire
+    <textarea name="comment" rows="4" placeholder="Votre avis..." required></textarea>
+  </label>
+  <button class="cta" type="submit">Publier</button>
+</form>
+
+<hr class="sep"/>
+
+<h2>Tous les avis</h2>
+<ul class="review-list">
+  {% for r in reviews %}
+  <li>
+    <div class="stars">{"★"*r["rating"]}{"☆"*(5-r["rating"])}</div>
+    <p>{{ r["comment"] }}</p>
+    <small>{{ r["author_email"] or "Anonyme" }} — {{ r["created_at"] }}</small>
+  </li>
+  {% else %}
+  <li>Aucun avis pour le moment.</li>
+  {% endfor %}
+</ul>
+{% endblock %}
