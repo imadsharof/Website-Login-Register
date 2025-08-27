@@ -9,8 +9,21 @@ print("GOOGLE_CLIENT_ID loaded?:", bool(os.getenv("GOOGLE_CLIENT_ID")))
 print("GOOGLE_CLIENT_SECRET loaded?:", bool(os.getenv("GOOGLE_CLIENT_SECRET")))
 
 app = Flask(__name__)
+# --- Où stocker la base ---
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_DB = os.path.join(BASE_DIR, "app.db")
+
+DB_PATH = os.getenv("DB_PATH", DEFAULT_DB)
+
+# Si DB_PATH contient un dossier, on s'assure qu'il existe
+db_dir = os.path.dirname(DB_PATH)
+if db_dir and not os.path.exists(db_dir):
+    os.makedirs(db_dir, exist_ok=True)
+
+print("DB_PATH =", DB_PATH)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-change-me")
-DB_PATH = "app.db"
+#DB_PATH = "app.db" avant
+DB_PATH = os.getenv("DB_PATH", "app.db")
 
 # --- OAuth Google ---
 app.config["GOOGLE_CLIENT_ID"] = os.getenv("GOOGLE_CLIENT_ID")

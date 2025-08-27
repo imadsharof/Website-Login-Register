@@ -15,12 +15,46 @@
         --text:#0c0c0d; --muted:#5c5c66; --shadow:0 30px 60px rgba(14,16,26,.10), inset 0 1px 0 rgba(255,255,255,.6);}
     }
     *{box-sizing:border-box} html,body{height:100%}
-    body{ margin:0; color:var(--text);
+
+    /* Base + fond aurora bleu */
+    body{
+      margin:0; color:var(--text);
       font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Inter,system-ui,"Helvetica Neue",Arial,sans-serif;
-      background: radial-gradient(1200px 600px at 10% -10%, rgba(10,132,255,.25), transparent 60%),
-                 radial-gradient(1000px 500px at 110% 10%, rgba(100,210,255,.18), transparent 55%),
-                 var(--bg);
-      display:grid; place-items:center; padding:40px 18px; }
+      background: var(--bg);
+      display:grid; place-items:center; padding:40px 18px;
+      position:relative; overflow:hidden;
+    }
+    body::before{
+      content:"";
+      position:fixed; inset:-20%;
+      z-index:-1; pointer-events:none;
+      background:
+        radial-gradient(55% 40% at 12% 18%, rgba(0,120,255,.35), transparent 60%),
+        radial-gradient(45% 35% at 85% 12%, rgba(70,200,255,.28), transparent 58%),
+        radial-gradient(60% 50% at 50% 85%, rgba(0,85,210,.22), transparent 62%),
+        conic-gradient(from 220deg at 50% 50%,
+                       rgba(2,20,50,.60), rgba(0,85,200,.60), rgba(2,20,50,.60));
+      filter: blur(42px) saturate(140%);
+      transform: translateZ(0);
+      animation: aurora-float 22s ease-in-out infinite alternate;
+    }
+    @media (prefers-color-scheme: light){
+      body::before{
+        filter: blur(50px) saturate(120%);
+        background:
+          radial-gradient(55% 40% at 12% 18%, rgba(0,120,255,.28), transparent 60%),
+          radial-gradient(45% 35% at 85% 12%, rgba(70,200,255,.22), transparent 58%),
+          radial-gradient(60% 50% at 50% 90%, rgba(0,85,210,.18), transparent 62%),
+          conic-gradient(from 220deg at 50% 50%,
+                         rgba(10,40,90,.28), rgba(0,120,255,.28), rgba(10,40,90,.28));
+      }
+    }
+    @keyframes aurora-float{
+      0%   { transform: translate(-2%, -1%) scale(1.04); }
+      50%  { transform: translate(1%, 1%)   scale(1.00); }
+      100% { transform: translate(2%, -1%)  scale(1.06); }
+    }
+
     .card{ width:100%; max-width:460px; background:var(--card); border:1px solid var(--border);
       border-radius:var(--radius); backdrop-filter:saturate(180%) blur(20px); -webkit-backdrop-filter:saturate(180%) blur(20px);
       box-shadow:var(--shadow); overflow:hidden; animation:pop .6s cubic-bezier(.2,.7,.2,1) both; }
@@ -227,7 +261,6 @@
         const input = document.getElementById(id);
         const isPwd = input.type === 'password';
         input.type = isPwd ? 'text' : 'password';
-        // simple visuel: inverse le cercle plein/creux
         btn.innerHTML = isPwd
           ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none"/></svg>'
           : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>';
