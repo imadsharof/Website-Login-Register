@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Connexion • Mon Site</title>
+
+  <style>
+    :root{ --bg:#0b0b0c; --card:rgba(255,255,255,.06); --border:rgba(255,255,255,.12);
+      --text:#e7e7ea; --muted:#bdbdc7; --accent:#0a84ff; --accent-2:#64d2ff;
+      --success:#34c759; --warn:#fde047; --radius:18px;
+      --shadow:0 30px 80px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.05); }
+    @media (prefers-color-scheme: light){
+      :root{ --bg:#f5f7fb; --card:rgba(255,255,255,.75); --border:rgba(12,12,13,.08);
+        --text:#0c0c0d; --muted:#5c5c66; --shadow:0 30px 60px rgba(14,16,26,.10), inset 0 1px 0 rgba(255,255,255,.6);}
+    }
+    *{box-sizing:border-box} html,body{height:100%}
+    body{ margin:0; color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Inter,system-ui,"Helvetica Neue",Arial,sans-serif;
+      background: radial-gradient(1200px 600px at 10% -10%, rgba(10,132,255,.25), transparent 60%),
+                 radial-gradient(1000px 500px at 110% 10%, rgba(100,210,255,.18), transparent 55%),
+                 var(--bg);
+      display:grid; place-items:center; padding:40px 18px; }
+    .card{ width:100%; max-width:460px; background:var(--card); border:1px solid var(--border);
+      border-radius:var(--radius); backdrop-filter:saturate(180%) blur(20px); -webkit-backdrop-filter:saturate(180%) blur(20px);
+      box-shadow:var(--shadow); overflow:hidden; animation:pop .6s cubic-bezier(.2,.7,.2,1) both; }
+    @keyframes pop{from{transform:translateY(8px) scale(.985); opacity:0} to{transform:none; opacity:1}}
+    .header{padding:28px 26px 10px; display:flex; align-items:center; gap:12px}
+    .glyph{width:28px; height:28px; border-radius:8px; background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 8px 24px rgba(10,132,255,.35)}
+    .title{font-weight:700; font-size:24px; letter-spacing:-.02em}
+    .subtitle{color:var(--muted); margin:4px 0 0 0; font-size:14px}
+
+    .tabs{display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:16px}
+    .tab{display:grid; place-items:center; padding:12px 14px; border-radius:12px; border:1px solid var(--border);
+      background:linear-gradient(0deg,rgba(255,255,255,.04),rgba(255,255,255,.06)); cursor:pointer; user-select:none; font-weight:600;
+      transition:transform .12s ease, background .2s ease, border-color .2s ease;}
+    .tab:hover{transform:translateY(-1px)}
+    .tab.active{background:linear-gradient(135deg,rgba(10,132,255,.22),rgba(100,210,255,.16)); border-color:rgba(10,132,255,.35)}
+
+    .panel{padding:4px 16px 18px; display:none}
+    .panel.active{display:block; animation:fade .35s ease}
+    @keyframes fade{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none}}
+    form{display:grid; gap:14px}
+    label{font-size:13px; color:var(--muted)}
+    .field{display:grid; gap:8px; padding:14px; border:1px solid var(--border); border-radius:14px;
+      background:linear-gradient(0deg,rgba(255,255,255,.02),rgba(255,255,255,.06));
+      transition:border-color .2s ease, background .2s ease, box-shadow .2s ease;}
+    .field:focus-within{border-color:rgba(10,132,255,.55); box-shadow:0 0 0 6px rgba(10,132,255,.12);
+      background:linear-gradient(0deg,rgba(10,132,255,.08),rgba(255,255,255,.02))}
+    .input-row{position:relative}
+    .textbox{width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--border); background:rgba(255,255,255,.08); color:var(--text)}
+    .textbox::placeholder{color:var(--muted)}
+    .eye-btn{position:absolute; right:10px; top:50%; transform:translateY(-50%); width:32px; height:32px;
+      display:grid; place-items:center; border:1px solid var(--border); border-radius:8px; background:rgba(255,255,255,.06); cursor:pointer}
+    .eye-btn:hover{filter:brightness(1.05)}
+
+    .actions{display:grid; gap:10px; margin-top:6px}
+    button{appearance:none; border:0; outline:0; padding:14px 16px; border-radius:14px; font-weight:700; letter-spacing:.2px; color:#fff;
+      background:linear-gradient(135deg,var(--accent),var(--accent-2));
+      box-shadow:0 14px 28px rgba(10,132,255,.35), inset 0 1px 0 rgba(255,255,255,.3); cursor:pointer; transition:.2s}
+    button:hover{filter:brightness(1.03); box-shadow:0 18px 38px rgba(10,132,255,.40), inset 0 1px 0 rgba(255,255,255,.35)}
+    button:active{transform:translateY(1px)}
+    .btn-google{display:grid; grid-auto-flow:column; align-items:center; justify-content:center; gap:8px;
+      padding:12px 14px; border-radius:12px; border:1px solid var(--border); background:#fff; color:#111; font-weight:600; text-decoration:none}
+    .btn-google:hover{filter:brightness(0.98)}
+    .hint{text-align:center; color:var(--muted); font-size:13px}
+    .divider{display:grid; grid-template-columns:1fr auto 1fr; gap:12px; align-items:center; color:var(--muted); font-size:12px; margin:6px 0}
+    .divider::before,.divider::after{content:""; height:1px; background:var(--border)}
+    .badge{display:inline-grid; grid-auto-flow:column; align-items:center; gap:6px; padding:8px 12px; border-radius:999px; border:1px solid rgba(52,199,89,.45);
+      background:linear-gradient(0deg,rgba(52,199,89,.08),rgba(255,255,255,.04)); color:var(--success); font-size:12px; font-weight:600}
+    .foot{padding:16px; text-align:center; color:var(--muted); font-size:12px}
+    a{color:var(--accent); text-decoration:none} a:hover{text-decoration:underline}
+
+    /* Aide mdp (checklist) */
+    .help-block{margin-top:6px; font-size:12px; line-height:1.4}
+    .help-error{background:#fee2e2; color:#7f1d1d; border:1px solid #fecaca; padding:10px 12px; border-radius:10px}
+    .help-list{margin:8px 0 0 18px; padding:0} .help-list li{margin:4px 0}
+    .rules{margin-top:8px; padding:10px 12px; border:1px dashed rgba(255,255,255,.18); border-radius:10px; font-size:12px; color:var(--muted)}
+    .rule{display:flex; align-items:center; gap:8px; margin:4px 0}
+    .rule .dot{width:8px; height:8px; border-radius:999px; background:#ef4444}
+    .rule.ok .dot{background:#34c759}
+
+    /* Toasts globaux */
+    .toast-stack{position:fixed; left:50%; top:16px; transform:translateX(-50%); z-index:9999; display:grid; gap:8px}
+    .toast{padding:12px 14px; min-width:280px; border-radius:12px; text-align:center; font-weight:600;
+      box-shadow:0 10px 30px rgba(0,0,0,.15); animation:toast-in .25s ease-out;}
+    .toast--success{background:var(--success); color:#fff}
+    .toast--error{background:var(--warn); color:#1f2937}
+    @keyframes toast-in{from{opacity:0; transform:translate(-50%,-6px)} to{opacity:1; transform:translate(-50%,0)}}
+  </style>
+</head>
+<body>
+
+  <main class="card" role="main" aria-labelledby="title">
+
+    {% with messages = get_flashed_messages(with_categories=true, category_filter=['success','error']) %}
+      {% if messages %}
+        <div class="toast-stack" id="toasts">
+          {% for kind, text in messages %}
+            <div class="toast {{ 'toast--success' if kind == 'success' else 'toast--error' }}">{{ text }}</div>
+          {% endfor %}
+        </div>
+        <script> setTimeout(()=>{ const t=document.getElementById('toasts'); if(t) t.remove(); }, 2600); </script>
+      {% endif %}
+    {% endwith %}
+
+    <div class="header">
+      <div class="glyph" aria-hidden="true"></div>
+      <div>
+        <div class="title" id="title">Bienvenue</div>
+        <p class="subtitle">Identifiez-vous pour continuer</p>
+      </div>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Choisir une action">
+      <div class="tab active" id="tab-login" role="tab" aria-controls="panel-login" aria-selected="true">Connectez-vous</div>
+      <div class="tab" id="tab-signup" role="tab" aria-controls="panel-signup" aria-selected="false">Inscrivez-vous</div>
+    </div>
+
+    <!-- LOGIN -->
+    <section id="panel-login" class="panel active" role="tabpanel" aria-labelledby="tab-login">
+      <form method="post" action="/login" autocomplete="on">
+        <div class="field">
+          <label for="lemail">Adresse e-mail</label>
+          <div class="input-row">
+            <input id="lemail" class="textbox" type="email" name="email" placeholder="ex. nom@domaine.com" required />
+          </div>
+        </div>
+        <div class="field">
+          <label for="lpass">Mot de passe</label>
+          <div class="input-row">
+            <input id="lpass" class="textbox" type="password" name="password" placeholder="••••••••" required />
+            <button class="eye-btn" type="button" data-target="lpass" aria-label="Afficher/masquer le mot de passe">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="actions">
+          <button type="submit">Se connecter</button>
+          <a class="btn-google" href="/login/google" aria-label="Continuer avec Google">
+            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12S17.4 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.4 6.1 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c10 0 19-7.3 19-20 0-1.2-.2-2.5-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7 12.9 20C14.6 15.8 18.9 12.9 24 12.9c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.4 6.1 29.5 4 24 4 16 4 9.3 8.6 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 10.1-2 13.7-5.3l-6.3-5.2C29.3 35.5 26.8 36.5 24 36.5c-5.2 0-9.6-3.5-11.3-8.2l-6.3 4.9C9.3 39.4 16 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12S17.4 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.4 6.1 29.5 4 24 4c-12 0-20 8.9-20 20s8 20 20 20c10 0 19-7.3 19-20 0-1.2-.2-2.5-.4-3.5z"/></svg>
+            Continuer avec Google
+          </a>
+        </div>
+      </form>
+    </section>
+
+    <!-- SIGNUP -->
+    <section id="panel-signup" class="panel" role="tabpanel" aria-labelledby="tab-signup">
+      <form method="post" action="/register" autocomplete="on" novalidate>
+        <div class="field">
+          <label for="semail">Adresse e-mail</label>
+          <div class="input-row">
+            <input id="semail" class="textbox" type="email" name="email" placeholder="ex. nom@domaine.com" required />
+          </div>
+        </div>
+
+        <div class="field" id="pwField">
+          <label for="spass">Mot de passe</label>
+          <div class="input-row">
+            <input id="spass" class="textbox" type="password" name="password" placeholder="Au moins 8 caractères" required />
+            <button class="eye-btn" type="button" data-target="spass" aria-label="Afficher/masquer le mot de passe">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+            </button>
+          </div>
+
+          {% with pw_errors = get_flashed_messages(category_filter=['signup_pw']) %}
+            {% if pw_errors %}
+              <div class="help-block help-error" id="pwServerErrors">
+                <strong>Votre mot de passe doit respecter :</strong>
+                <ul class="help-list">
+                  {% for e in pw_errors %}<li>{{ e }}</li>{% endfor %}
+                </ul>
+              </div>
+            {% endif %}
+          {% endwith %}
+
+          <div class="rules" id="pwRules">
+            <div class="rule" data-rule="len"><span class="dot"></span> Au moins 8 caractères</div>
+            <div class="rule" data-rule="lower"><span class="dot"></span> Au moins 1 lettre minuscule</div>
+            <div class="rule" data-rule="upper"><span class="dot"></span> Au moins 1 lettre majuscule</div>
+            <div class="rule" data-rule="digit"><span class="dot"></span> Au moins 1 chiffre</div>
+            <div class="rule" data-rule="special"><span class="dot"></span> Au moins 1 caractère spécial (! @ # $ % & * ? …)</div>
+            <div class="rule" data-rule="space"><span class="dot"></span> Pas d’espace</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="sconfirm">Confirmer le mot de passe</label>
+          <div class="input-row">
+            <input id="sconfirm" class="textbox" type="password" name="confirm" placeholder="Répétez le mot de passe" required />
+            <button class="eye-btn" type="button" data-target="sconfirm" aria-label="Afficher/masquer le mot de passe">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="submit">Créer mon compte</button>
+          <div class="divider">ou</div>
+          <a class="btn-google" href="/login/google">
+            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12S17.4 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.4 6.1 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c10 0 19-7.3 19-20 0-1.2-.2-2.5-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7 12.9 20C14.6 15.8 18.9 12.9 24 12.9c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.4 6.1 29.5 4 24 4 16 4 9.3 8.6 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 10.1-2 13.7-5.3l-6.3-5.2C29.3 35.5 26.8 36.5 24 36.5c-5.2 0-9.6-3.5-11.3-8.2l-6.3 4.9C9.3 39.4 16 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12S17.4 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.4 6.1 29.5 4 24 4c-12 0-20 8.9-20 20s8 20 20 20c10 0 19-7.3 19-20 0-1.2-.2-2.5-.4-3.5z"/></svg>
+            Continuer avec Google
+          </a>
+        </div>
+      </form>
+    </section>
+
+    <div class="foot">En continuant, vous acceptez nos <a href="#">Conditions</a> & <a href="#">Confidentialité</a>.</div>
+  </main>
+
+  <script>
+    // Tabs
+    const tLogin=document.getElementById('tab-login'), tSignup=document.getElementById('tab-signup');
+    const pLogin=document.getElementById('panel-login'), pSignup=document.getElementById('panel-signup');
+    function show(which){ const isLogin=which==='login';
+      [tLogin,tSignup].forEach(e=>e.classList.remove('active')); [pLogin,pSignup].forEach(e=>e.classList.remove('active'));
+      (isLogin?tLogin:tSignup).classList.add('active'); (isLogin?pLogin:pSignup).classList.add('active');
+      tLogin.setAttribute('aria-selected',isLogin); tSignup.setAttribute('aria-selected',!isLogin);
+      location.hash=isLogin?'#login':'#signup'; }
+    tLogin.onclick=()=>show('login'); tSignup.onclick=()=>show('signup'); if(location.hash==='#signup') show('signup');
+
+    // Eye toggles
+    document.querySelectorAll('.eye-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const id = btn.getAttribute('data-target');
+        const input = document.getElementById(id);
+        const isPwd = input.type === 'password';
+        input.type = isPwd ? 'text' : 'password';
+        // simple visuel: inverse le cercle plein/creux
+        btn.innerHTML = isPwd
+          ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none"/></svg>'
+          : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>';
+      });
+    });
+
+    // Checklist mdp
+    const pwInput=document.getElementById('spass');
+    const rulesMap={len:v=>v.length>=8,lower:v=>/[a-z]/.test(v),upper:v=>/[A-Z]/.test(v),digit:v=>/\d/.test(v),special:v=>/[^\w\s]/.test(v),space:v=>!/\s/.test(v)};
+    function updateRules(){const v=pwInput.value||"";document.querySelectorAll('#pwRules .rule').forEach(el=>{const k=el.getAttribute('data-rule');el.classList.toggle('ok',rulesMap[k](v));});}
+    pwInput.addEventListener('input',updateRules); updateRules();
+  </script>
+</body>
+</html>
