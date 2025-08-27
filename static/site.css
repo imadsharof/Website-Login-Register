@@ -1,75 +1,209 @@
+/* ====== Typo & couleurs ====== */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap');
+
 :root{
   --bg:#0a0a0a;
-  --card:rgba(255,255,255,.06);
-  --text:#eef0f2;
-  --muted:#c9cbd1;
-  --accent:#ffd000; /* jaune belge */
-  --accent-2:#e10600; /* rouge belge */
+  --surface:rgba(255,255,255,.06);
+  --stroke:rgba(255,255,255,.14);
+  --text:#f5f6f7;
+  --muted:#c7c9d1;
+  --primary:#ffd000; /* jaune belge */
+  --danger:#e10600;  /* rouge belge */
 }
 
-/* Fond drapeau belge (noir→jaune→rouge) en diagonale, léger glow */
+/* Drapeau belge en fond (subtil) */
 html,body{height:100%}
 body{
-  margin:0; color:var(--text); background: var(--bg);
-  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  margin:0; color:var(--text); background:var(--bg);
+  font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  letter-spacing:.2px;
   position:relative; overflow-x:hidden;
 }
 body::before{
   content:""; position:fixed; inset:-20%;
-  z-index:-1; pointer-events:none;
+  z-index:-2; pointer-events:none; opacity:.85;
   background:
     linear-gradient(120deg, #000 0%, #000 33.33%, transparent 33.33%),
     linear-gradient(120deg, transparent 33.33%, #ffd000 33.33%, #ffd000 66.66%, transparent 66.66%),
     linear-gradient(120deg, transparent 66.66%, #e10600 66.66%, #e10600 100%);
-  filter: blur(32px) saturate(120%);
-  opacity:.9; animation: float 24s ease-in-out infinite alternate;
+  filter: blur(30px) saturate(115%);
+  animation: float 26s ease-in-out infinite alternate;
 }
 @keyframes float{
   0%{ transform: translate(-2%, -1%) scale(1.05); }
   100%{ transform: translate(2%, 1%) scale(1.02); }
 }
 
-/* NAVBAR */
-.nav{display:flex; justify-content:space-between; align-items:center; gap:16px;
-     padding:14px 22px; position:sticky; top:0; backdrop-filter:saturate(180%) blur(14px);
-     background:rgba(0,0,0,.35); border-bottom:1px solid rgba(255,255,255,.12)}
+/* ====== Navbar ====== */
+.nav{
+  display:flex; justify-content:space-between; align-items:center; gap:16px;
+  padding:14px 22px; position:sticky; top:0; z-index:30;
+  backdrop-filter:saturate(180%) blur(14px);
+  background:rgba(0,0,0,.42); border-bottom:1px solid rgba(255,255,255,.12)
+}
 .brand{font-weight:800; color:#fff; text-decoration:none}
-.links{display:flex; align-items:center; gap:14px}
-.links a{color:#fff; text-decoration:none; font-weight:600}
-.links .btn{padding:8px 12px; border-radius:12px; background:linear-gradient(135deg, var(--accent), var(--accent-2)); color:#111}
-.links .hello{opacity:.8; font-size:.9rem}
+.links{display:flex; align-items:center; gap:16px}
+.links a{color:#fff; text-decoration:none; font-weight:700}
+.links .btn{padding:8px 12px; border-radius:999px; background:linear-gradient(135deg, var(--primary), var(--danger)); color:#111}
+.links .hello{opacity:.85; font-weight:600}
 
-/* CONTAINER */
-.container{max-width:1000px; margin:0 auto; padding:28px 18px}
+/* ====== Layout ====== */
+.container{max-width:1100px; margin:0 auto; padding:30px 18px}
+.display{font-size: clamp(34px, 4.2vw, 56px); line-height:1.05; margin:0 0 10px}
+.lead{color:var(--muted); font-size: clamp(15px, 1.8vw, 18px); margin:0 0 16px}
+.muted{color:var(--muted)}
 
-/* HERO */
-.hero{margin:34px auto 22px; text-align:center}
-.hero h1{font-size:42px; margin:0 0 10px}
-.hero p{color:var(--muted); margin:0 0 18px}
-.cta{display:inline-block; padding:12px 16px; border-radius:14px; font-weight:800; color:#111;
-     background:linear-gradient(135deg, var(--accent), var(--accent-2)); text-decoration:none}
+/* ====== HERO avec photo ====== */
+.hero{position:relative; margin:14px auto 10px; border-radius:22px; overflow:hidden}
+.hero--with-photo{min-height:420px}
+.hero__media{
+  position:absolute; inset:0; z-index:-2;
+  background:url('/static/mitraillette-hero/mitraillette-hero.jpg') center/cover no-repeat; /* <- mets ta photo ici */
+  transform: scale(1.02);
+}
+.hero__overlay{
+  position:absolute; inset:0; z-index:-1;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(0,0,0,.5), transparent 60%),
+    linear-gradient(0deg, rgba(0,0,0,.45), rgba(0,0,0,.35));
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+}
+.hero__inner{padding:44px 28px; text-align:center}
+.hero__badges{display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:14px}
+.badge{
+  display:inline-block; padding:8px 12px; border-radius:999px;
+  background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.18); font-weight:700
+}
+.hero__cta{display:flex; gap:12px; justify-content:center; margin:16px 0 4px}
 
-/* CARDS */
-.features{display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); margin:26px 0}
-.card{padding:18px; border-radius:16px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14)}
-
-/* FORM */
-.form{display:grid; gap:12px; max-width:620px}
-.form input,.form textarea,.form select{
-  width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.18);
-  background:rgba(255,255,255,.06); color:#fff
+/* Buttons */
+.btn{display:inline-block; font-weight:800; text-decoration:none; cursor:pointer; border:0}
+.btn--primary{
+  padding:12px 16px; border-radius:14px; color:#111;
+  background:linear-gradient(135deg, var(--primary), var(--danger));
+  box-shadow:0 14px 28px rgba(225,6,0,.25), inset 0 1px 0 rgba(255,255,255,.3);
+}
+.btn--primary:hover{filter:brightness(1.03)}
+.btn--ghost{
+  padding:12px 16px; border-radius:14px; color:#fff; border:1px solid rgba(255,255,255,.3);
+  background:rgba(255,255,255,.08)
 }
 
-/* REVIEWS */
+/* ====== USP ====== */
+.features{
+  display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  margin:22px 0 10px
+}
+.card{
+  padding:18px; border-radius:18px;
+  background:var(--surface); border:1px solid var(--stroke);
+  backdrop-filter:saturate(160%) blur(10px)
+}
+.card h3{margin:0 0 8px}
+
+/* ====== Reviews ====== */
+.reviews{margin:26px 0}
 .review-list{list-style:none; padding:0; margin:0; display:grid; gap:12px}
-.review-list li{padding:14px; border-radius:14px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12)}
-.stars{color:#ffd000; margin-bottom:6px}
-.sep{margin:22px 0; border:0; height:1px; background:rgba(255,255,255,.18)}
+.review{
+  padding:14px; border-radius:16px; background:var(--surface); border:1px solid var(--stroke)
+}
+.review__text{margin:.3rem 0}
+.review__meta{opacity:.8}
+.stars{color:var(--primary); margin-bottom:4px}
 .link{color:#fff; text-decoration:underline}
 
-/* TOASTS */
+/* ====== Toasts ====== */
 .toast-stack{position:fixed; left:50%; top:12px; transform:translateX(-50%); z-index:9999; display:grid; gap:8px}
 .toast{padding:10px 12px; min-width:260px; border-radius:12px; text-align:center; font-weight:700;
        box-shadow:0 10px 30px rgba(0,0,0,.18)}
 .toast--success{background:#22c55e; color:#fff}
 .toast--error{background:#fde047; color:#222}
+/* ==== AUTH (mêmes couleurs que le site) ==== */
+.auth{display:grid; place-items:center; padding:40px 18px}
+.auth-card{
+  width:100%; max-width:520px; border-radius:22px;
+  background:rgba(0,0,0,.55);
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 30px 80px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.05);
+  overflow:hidden;
+}
+.auth-head{display:flex; gap:12px; align-items:center; padding:22px 20px 8px}
+.auth-head h1{margin:0; font-size:22px}
+.auth-glyph{width:28px; height:28px; border-radius:8px;
+  background:linear-gradient(135deg, var(--primary), var(--danger));
+  box-shadow:0 8px 24px rgba(225,6,0,.35)
+}
+
+.auth-tabs{display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:12px 16px}
+.auth-tab{
+  padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.16);
+  background:rgba(255,255,255,.06); color:#fff; font-weight:700; cursor:pointer
+}
+.auth-tab.active{
+  background:linear-gradient(135deg, var(--primary), var(--danger));
+  color:#111; border-color:rgba(255,255,255,.25)
+}
+.auth-panel{display:none; padding:8px 16px 18px}
+.auth-panel.active{display:block; animation:fade .3s ease}
+@keyframes fade{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none}}
+
+.field{display:grid; gap:6px; margin:10px 0}
+.field span{font-size:13px; color:var(--muted)}
+.input-row{position:relative}
+.textbox{
+  width:100%; padding:12px 14px; border-radius:12px;
+  border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.06); color:#fff
+}
+.eye-btn{
+  position:absolute; right:8px; top:50%; transform:translateY(-50%);
+  width:36px; height:36px; border-radius:10px; border:1px solid rgba(255,255,255,.15);
+  background:rgba(255,255,255,.08); color:#fff; cursor:pointer
+}
+
+.auth-actions{display:grid; gap:10px; margin-top:12px}
+.btn{appearance:none; border:0; outline:0; font-weight:800; text-decoration:none; text-align:center}
+.btn--primary{
+  padding:12px 16px; border-radius:14px; color:#111;
+  background:linear-gradient(135deg, var(--primary), var(--danger));
+  box-shadow:0 14px 28px rgba(225,6,0,.25), inset 0 1px 0 rgba(255,255,255,.3);
+}
+.btn--primary:hover{filter:brightness(1.04)}
+.btn--google{
+  padding:12px 16px; border-radius:12px; color:#111; background:#fff; font-weight:700;
+  border:1px solid rgba(0,0,0,.08)
+}
+
+.auth-help{margin-top:10px; font-size:13px; line-height:1.4}
+.auth-help--error{
+  background:#fee2e2; color:#7f1d1d; border:1px solid #fecaca; padding:10px 12px; border-radius:10px
+}
+/* ===== Avis améliorés ===== */
+.reviews-page{max-width:900px; margin:0 auto; padding:26px 18px}
+.reviews-head{display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap}
+.reviews-stats{display:flex; align-items:center; gap:12px}
+.score{display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:14px;
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14)}
+.score-stars .star{font-size:20px; opacity:.35}
+.score-stars .star.filled{color:#ffd000; opacity:1}
+.score-num{font-weight:800}
+
+.form-review{display:flex; gap:12px; align-items:flex-end; margin:14px 0; flex-wrap:wrap}
+.form-review .grow{flex:1}
+.rating{display:flex; align-items:center; gap:10px}
+.rating-stars{display:flex; gap:4px}
+.rstar{
+  border:0; background:transparent; color:#ffd000; font-size:22px; cursor:pointer;
+  filter:drop-shadow(0 1px 0 rgba(0,0,0,.3)); opacity:.5; transition:.15s
+}
+.rstar.on{opacity:1}
+.rating-label{color:var(--muted); font-size:13px}
+
+.review-list{list-style:none; padding:0; margin:0; display:grid; gap:12px}
+.review{
+  padding:14px; border-radius:16px; background:var(--surface); border:1px solid var(--stroke)
+}
+.review.empty{text-align:center; color:var(--muted)}
+.review-top{display:flex; justify-content:space-between; gap:10px; align-items:center}
+.review .stars{color:#ffd000; font-weight:800}
+.review-text{margin:.4rem 0 0}
+.review-meta{opacity:.85}

@@ -1,31 +1,85 @@
 {% extends "base.html" %}
 {% block title %}Avis • Mitraillette Royale{% endblock %}
 {% block content %}
-<h1>Donner un avis</h1>
-<form class="form" method="post">
-  <label>Note
-    <select name="rating">
-      {% for i in range(5,0,-1) %}<option value="{{ i }}">{{ i }} ★</option>{% endfor %}
-    </select>
-  </label>
-  <label>Commentaire
-    <textarea name="comment" rows="4" placeholder="Votre avis..." required></textarea>
-  </label>
-  <button class="cta" type="submit">Publier</button>
-</form>
+<section class="reviews-page">
 
-<hr class="sep"/>
+  <!-- En-tête avec moyenne -->
+  <header class="reviews-head">
+    <h1>Donner un avis</h1>
 
-<h2>Tous les avis</h2>
-<ul class="review-list">
-  {% for r in reviews %}
-  <li>
-    <div class="stars">{"★"*r["rating"]}{"☆"*(5-r["rating"])}</div>
-    <p>{{ r["comment"] }}</p>
-    <small>{{ r["author_email"] or "Anonyme" }} — {{ r["created_at"] }}</small>
-  </li>
-  {% else %}
-  <li>Aucun avis pour le moment.</li>
-  {% endfor %}
-</ul>
+    <div class="reviews-stats">
+      {% set n = stats['n'] or 0 %}
+      {% set avg = stats['avg'] or 0 %}
+      <div class="score">
+        <div class="score-stars">
+          {% for i in range(1,6) %}
+            <span class="star {{ 'filled' if i <= avg|round(0, 'floor') else '' }}">★</span>
+          {% endfor %}
+        </div>
+        <div class="score-num">{{ avg }}</div>
+      </div>
+      <div class="score-meta">{{ n }} avis</div>
+    </div>
+  </header>
+
+  <!-- Formulaire -->
+  <form class="form form-review" method="post">
+    <div class="rating">
+      <input type="hidden" name="rating" id="ratingValue" value="5">
+      <div class="rating-stars" aria-label="Choisir une note">
+        {% for i in range(1,6) %}
+          <button type="button" class="rstar" data-v="{{ i }}">★</button>
+        {% endfor %}
+      </div>
+      <span class="rating-label">Note</span>
+    </div>
+
+    <label class="field grow">
+      <span>Commentaire</span>
+      <textarea name="comment" rows="3" placeholder="Votre avis..." required></textarea>
+    </label>
+
+    <button class="btn btn--primary" type="submit">Publier</button>
+  </form>
+
+  <hr class="sep"/>
+
+  <!-- Liste des avis -->
+  <section>
+    <h2>Tous les avis</h2>
+    <ul class="review-list">
+      {% for r in reviews %}
+      <li class="review">
+        <div class="review-top">
+          <div class="stars">
+            {{ '★' * r['rating'] }}{{ '☆' * (5 - r['rating']) }}
+          </div>
+          <small class="review-meta">
+            {{ r["author_email"] or "Anonyme" }} — {{ r["created_at"] }}
+          </small>
+        </div>
+        <p class="review-text">“{{ r['comment'] }}”</p>
+      </li>
+      {% else %}
+      <li class="review empty">Aucun avis pour le moment.</li>
+      {% endfor %}
+    </ul>
+  </section>
+</section>
+
+<script>
+  // Sélection d'étoiles (note)
+  const hidden = document.getElementById('ratingValue');
+  const btns = Array.from(document.querySelectorAll('.rstar'));
+  function paint(n){
+    btns.forEach(b => b.classList.toggle('on', Number(b.dataset.v) <= n));
+  }
+  paint(Number(hidden.value));
+  btns.forEach(b=>{
+    b.addEventListener('click', ()=>{
+      hidden.value = b.dataset.v;
+      paint(Number(hidden.value));
+    });
+  });
+</script>
 {% endblock %}

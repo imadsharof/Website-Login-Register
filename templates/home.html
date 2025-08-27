@@ -1,42 +1,63 @@
 {% extends "base.html" %}
 {% block title %}TOP 1 Mitraillette en Belgique • Mitraillette Royale{% endblock %}
 {% block content %}
-<section class="hero">
-  <h1>TOP 1 Mitraillette en Belgique</h1>
-  <p>Le sandwich mythique 🇧🇪 — pain croustillant, viande, frites dorées, sauce maison.</p>
-  <a class="cta" href="{{ url_for('auth') }}">Commander (se connecter)</a>
+
+<!-- HERO -->
+<section class="hero hero--with-photo">
+  <div class="hero__media" role="img" aria-label="Mitraillette belge croustillante"></div>
+  <div class="hero__overlay"></div>
+  <div class="hero__inner">
+    <h1 class="display">TOP 1 Mitraillette en Belgique</h1>
+    <p class="lead">
+      Pain croustillant, viande savoureuse, frites dorées et sauce maison.
+      La légende 🇧🇪 — servie chaude en 3 minutes.
+    </p>
+    <div class="hero__cta">
+      <a class="btn btn--primary" href="{{ url_for('auth') }}">Commander (se connecter)</a>
+      <a class="btn btn--ghost" href="{{ url_for('avis') }}">Voir les avis</a>
+    </div>
+
+    <div class="hero__badges">
+      <span class="badge">Frites belges 2 cuissons</span>
+      <span class="badge">Sauces maison</span>
+      <span class="badge">Pain artisanal</span>
+    </div>
+  </div>
 </section>
 
+<!-- USP -->
 <section class="features">
-  <div class="card">
+  <article class="card">
     <h3>Frites belges</h3>
-    <p>Deux cuissons, croustillantes dehors, fondantes dedans.</p>
-  </div>
-  <div class="card">
+    <p>Croustillantes dehors, fondantes dedans. Seules les vraies 🥔.</p>
+  </article>
+  <article class="card">
     <h3>Sauces maison</h3>
-    <p>Andalouse, samouraï, americaine… la vraie tradition.</p>
-  </div>
-  <div class="card">
+    <p>Andalouse, samouraï, américaine … on a la tienne.</p>
+  </article>
+  <article class="card">
     <h3>Pain artisanal</h3>
     <p>La base parfaite pour une mitraillette généreuse.</p>
-  </div>
+  </article>
 </section>
 
+<!-- Derniers avis -->
 <section class="reviews">
   <h2>Derniers avis</h2>
   {% if last_reviews %}
     <ul class="review-list">
       {% for r in last_reviews %}
-        <li>
-          <div class="stars">{"★"*r["rating"]}{"☆"*(5-r["rating"])}</div>
-          <p>{{ r["comment"] }}</p>
-          <small>{{ r["author_email"] or "Anonyme" }} — {{ r["created_at"] }}</small>
-        </li>
+      <li class="review">
+        <div class="stars">{"★"*r["rating"]}{"☆"*(5-r["rating"])}</div>
+        <p class="review__text">“{{ r["comment"] }}”</p>
+        <small class="review__meta">{{ r["author_email"] or "Anonyme" }} — {{ r["created_at"] }}</small>
+      </li>
       {% endfor %}
     </ul>
     <a class="link" href="{{ url_for('avis') }}">Voir tous les avis →</a>
   {% else %}
-    <p>Pas encore d’avis. Soyez le premier !</p>
+    <p class="muted">Pas encore d’avis. Soyez le premier !</p>
   {% endif %}
 </section>
+
 {% endblock %}

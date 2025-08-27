@@ -163,21 +163,28 @@ def auth_google_callback():
 def avis():
     if request.method == "POST":
         rating = int(request.form.get("rating","5"))
-        comment = request.form.get("comment","").strip()
+        comment = (request.form.get("comment") or "").strip()
         author = session.get("email")
         if not comment:
             flash("Votre avis est vide.", "error"); return redirect(url_for("avis"))
         conn = get_db()
-        conn.execute("INSERT INTO reviews(author_email, rating, comment) VALUES (?,?,?)",
-                     (author, rating, comment))
+        conn.execute(
+            "INSERT INTO reviews(author_email, rating, comment) VALUES (?,?,?)",
+            (author, rating, comment)
+        )
         conn.commit(); conn.close()
         flash("Merci pour votre avis !", "success")
         return redirect(url_for("avis"))
 
     conn = get_db()
-    rows = conn.execute("SELECT * FROM reviews ORDER BY created_at DESC").fetchall()
+    rows = conn.execute(
+        "SELECT author_email, rating, comment, created_at FROM reviews ORDER BY created_at DESC"
+    ).fetchall()
+    stats = conn.execute(
+        "SELECT COUNT(*) AS n, ROUND(AVG(rating),1) AS avg FROM reviews"
+    ).fetchone()
     conn.close()
-    return render_template("avis.html", reviews=rows)
+    return render_template("avis.html", reviews=rows, stats=stats)
 
 # ----- Contact -----
 @app.route("/contact", methods=["GET","POST"])
